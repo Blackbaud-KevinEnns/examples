@@ -47,7 +47,7 @@ import java.util.Properties;
  * whenever new types of Avro objects (in the form of GenericRecord) are being passed between
  * processing steps.
  * <p>
- * <p>
+ * <br>
  * HOW TO RUN THIS EXAMPLE
  * <p>
  * 1) Start Zookeeper, Kafka, and Confluent Schema Registry. Please refer to <a href='http://docs.confluent.io/3.0.0/quickstart.html#quickstart'>CP3.0.0 QuickStart</a>.
@@ -125,8 +125,8 @@ import java.util.Properties;
  */
 public class PageViewRegionLambdaExample {
 
-  public static void main(String[] args) throws Exception {
-    Properties streamsConfiguration = new Properties();
+  public static void main(final String[] args) throws Exception {
+    final Properties streamsConfiguration = new Properties();
     // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
     // against which the application is run.
     streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "pageview-region-lambda-example");
@@ -144,26 +144,26 @@ public class PageViewRegionLambdaExample {
     final Serde<String> stringSerde = Serdes.String();
     final Serde<Long> longSerde = Serdes.Long();
 
-    KStreamBuilder builder = new KStreamBuilder();
+    final KStreamBuilder builder = new KStreamBuilder();
 
     // Create a stream of page view events from the PageViews topic, where the key of
     // a record is assumed to be the user id (String) and the value an Avro GenericRecord
     // that represents the full details of the page view event.  See `pageview.avsc` under
     // `src/main/avro/` for the corresponding Avro schema.
-    KStream<String, GenericRecord> views = builder.stream("PageViews");
+    final KStream<String, GenericRecord> views = builder.stream("PageViews");
 
-    KStream<String, GenericRecord> viewsByUser = views
-        .map((dummy, record) ->
-            new KeyValue<>(record.get("user").toString(), record))
-        .through("PageViewsByUser");
+    final KStream<String, GenericRecord> viewsByUser = views
+      .map((dummy, record) ->
+        new KeyValue<>(record.get("user").toString(), record))
+      .through("PageViewsByUser");
 
     // Create a changelog stream for user profiles from the UserProfiles topic,
     // where the key of a record is assumed to be the user id (String) and its value
     // an Avro GenericRecord.  See `userprofile.avsc` under `src/main/avro/` for the
     // corresponding Avro schema.
-    KTable<String, GenericRecord> userProfiles = builder.table("UserProfiles", "UserProfilesStore");
+    final KTable<String, GenericRecord> userProfiles = builder.table("UserProfiles", "UserProfilesStore");
 
-    KTable<String, String> userRegions = userProfiles.mapValues(record ->
+    final KTable<String, String> userRegions = userProfiles.mapValues(record ->
         record.get("region").toString());
 
     // We must specify the Avro schemas for all intermediate (Avro) classes, if any.
