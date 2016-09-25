@@ -138,7 +138,8 @@ public class ApplicationResetExample {
     final KStream<String, String> input = builder.stream("my-input-topic");
     input.selectKey((key, value) -> value.split(" ")[0])
       .through("rekeyed-topic")
-      .countByKey("count")
+      .groupByKey()
+      .count("count")
       .to(Serdes.String(), Serdes.Long(), "my-output-topic");
 
     final KafkaStreams streams = new KafkaStreams(builder, streamsConfiguration);

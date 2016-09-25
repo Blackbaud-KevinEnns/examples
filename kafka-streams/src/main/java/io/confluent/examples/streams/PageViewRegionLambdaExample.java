@@ -164,43 +164,43 @@ public class PageViewRegionLambdaExample {
     final KTable<String, GenericRecord> userProfiles = builder.table("UserProfiles", "UserProfilesStore");
 
     final KTable<String, String> userRegions = userProfiles.mapValues(record ->
-        record.get("region").toString());
+      record.get("region").toString());
 
     // We must specify the Avro schemas for all intermediate (Avro) classes, if any.
     // In this example, we want to create an intermediate GenericRecord to hold the view region.
     // See `pageviewregion.avsc` under `src/main/avro/`.
     final InputStream
-        pageViewRegionSchema =
-        PageViewRegionLambdaExample.class.getClassLoader()
-            .getResourceAsStream("avro/io/confluent/examples/streams/pageviewregion.avsc");
-    Schema schema = new Schema.Parser().parse(pageViewRegionSchema);
+      pageViewRegionSchema =
+      PageViewRegionLambdaExample.class.getClassLoader()
+        .getResourceAsStream("avro/io/confluent/examples/streams/pageviewregion.avsc");
+    final Schema schema = new Schema.Parser().parse(pageViewRegionSchema);
 
-    KTable<Windowed<String>, Long> viewsByRegion = viewsByUser
-        .leftJoin(userRegions, (view, region) -> {
-          GenericRecord viewRegion = new GenericData.Record(schema);
-          viewRegion.put("user", view.get("user"));
-          viewRegion.put("page", view.get("page"));
-          viewRegion.put("region", region);
-          return viewRegion;
-        })
-        .map((user, viewRegion) -> new KeyValue<>(viewRegion.get("region").toString(), viewRegion))
-        // count views by user, using hopping windows of size 5 minutes that advance every 1 minute
-        .groupByKey()
-        .count(TimeWindows.of(5 * 60 * 1000L).advanceBy(60 * 1000L), "GeoPageViewsStore");
+    final KTable<Windowed<String>, Long> viewsByRegion = viewsByUser
+      .leftJoin(userRegions, (view, region) -> {
+        GenericRecord viewRegion = new GenericData.Record(schema);
+        viewRegion.put("user", view.get("user"));
+        viewRegion.put("page", view.get("page"));
+        viewRegion.put("region", region);
+        return viewRegion;
+      })
+      .map((user, viewRegion) -> new KeyValue<>(viewRegion.get("region").toString(), viewRegion))
+      // count views by user, using hopping windows of size 5 minutes that advance every 1 minute
+      .groupByKey()
+      .count(TimeWindows.of(5 * 60 * 1000L).advanceBy(60 * 1000L), "GeoPageViewsStore");
 
     // Note: The following operations would NOT be needed for the actual pageview-by-region
     // computation, which would normally stop at `count` above.  We use the operations
     // below only to "massage" the output data so it is easier to inspect on the console via
     // kafka-console-consumer.
-    KStream<String, Long> viewsByRegionForConsole = viewsByRegion
-        // get rid of windows (and the underlying KTable) by transforming the KTable to a KStream
-        // and by also converting the record key from type `Windowed<String>` (which
-        // kafka-console-consumer can't print to console out-of-the-box) to `String`
-        .toStream((windowedRegion, count) -> windowedRegion.toString());
+    final KStream<String, Long> viewsByRegionForConsole = viewsByRegion
+      // get rid of windows (and the underlying KTable) by transforming the KTable to a KStream
+      // and by also converting the record key from type `Windowed<String>` (which
+      // kafka-console-consumer can't print to console out-of-the-box) to `String`
+      .toStream((windowedRegion, count) -> windowedRegion.toString());
 
     viewsByRegionForConsole.to(stringSerde, longSerde, "PageViewsByRegion");
 
-    KafkaStreams streams = new KafkaStreams(builder, streamsConfiguration);
+    final KafkaStreams streams = new KafkaStreams(builder, streamsConfiguration);
     streams.start();
 
     // Add shutdown hook to respond to SIGTERM and gracefully close Kafka Streams

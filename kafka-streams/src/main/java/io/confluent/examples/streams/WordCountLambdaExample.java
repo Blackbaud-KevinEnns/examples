@@ -136,23 +136,23 @@ public class WordCountLambdaExample {
 
     final Pattern pattern = Pattern.compile("\\W+", Pattern.UNICODE_CHARACTER_CLASS);
 
-    KStream<String, Long> wordCounts = textLines
-        // Split each text line, by whitespace, into words.  The text lines are the record
-        // values, i.e. we can ignore whatever data is in the record keys and thus invoke
-        // `flatMapValues()` instead of the more generic `flatMap()`.
-        .flatMapValues(value -> Arrays.asList(pattern.split(value.toLowerCase())))
-        // We will subsequently invoke `count()` to count the occurrences of words, so we use
-        // `map` to ensure the key of each record contains the respective word.
-        .map((key, word) -> new KeyValue<>(word, word))
-        // Count the occurrences of each word (record key).
-        //
-        // This will change the stream type from `KStream<String, String>` to `KTable<String, Long>`
-        // (word -> count).  In the `count` operation we must provide a name for the resulting KTable,
-        // which will be used to name e.g. its associated state store and changelog topic.
-        .groupByKey()
-        .count("Counts")
-        // Convert the `KTable<String, Long>` into a `KStream<String, Long>`.
-        .toStream();
+    final KStream<String, Long> wordCounts = textLines
+      // Split each text line, by whitespace, into words.  The text lines are the record
+      // values, i.e. we can ignore whatever data is in the record keys and thus invoke
+      // `flatMapValues()` instead of the more generic `flatMap()`.
+      .flatMapValues(value -> Arrays.asList(pattern.split(value.toLowerCase())))
+      // We will subsequently invoke `count()` to count the occurrences of words, so we use
+      // `map` to ensure the key of each record contains the respective word.
+      .map((key, word) -> new KeyValue<>(word, word))
+      // Count the occurrences of each word (record key).
+      //
+      // This will change the stream type from `KStream<String, String>` to `KTable<String, Long>`
+      // (word -> count).  In the `count` operation we must provide a name for the resulting KTable,
+      // which will be used to name e.g. its associated state store and changelog topic.
+      .groupByKey()
+      .count("Counts")
+      // Convert the `KTable<String, Long>` into a `KStream<String, Long>`.
+      .toStream();
 
     // Write the `KStream<String, Long>` to the output topic.
     wordCounts.to(stringSerde, longSerde, "WordsWithCountsTopic");

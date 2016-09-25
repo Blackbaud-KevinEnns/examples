@@ -66,24 +66,24 @@ public class WikipediaFeedAvroExample {
     // read the source stream
     final KStream<String, WikiFeed> feeds = builder.stream("WikipediaFeed");
 
-        // aggregate the new feed counts of by user
-        KTable<String, Long> aggregated = feeds
-                // filter out old feeds
-                .filter(new Predicate<String, WikiFeed>() {
-                    @Override
-                    public boolean test(String dummy, WikiFeed value) {
-                        return value.getIsNew();
-                    }
-                })
-                // map the user id as key
-                .map(new KeyValueMapper<String, WikiFeed, KeyValue<String, WikiFeed>>() {
-                    @Override
-                    public KeyValue<String, WikiFeed> apply(String key, WikiFeed value) {
-                        return new KeyValue<>(value.getUser(), value);
-                    }
-                })
-                .groupByKey()
-                .count("Counts");
+    // aggregate the new feed counts of by user
+    final KTable<String, Long> aggregated = feeds
+      // filter out old feeds
+      .filter(new Predicate<String, WikiFeed>() {
+        @Override
+        public boolean test(final String dummy, final WikiFeed value) {
+          return value.getIsNew();
+        }
+      })
+      // map the user id as key
+      .map(new KeyValueMapper<String, WikiFeed, KeyValue<String, WikiFeed>>() {
+        @Override
+        public KeyValue<String, WikiFeed> apply(final String key, final WikiFeed value) {
+          return new KeyValue<>(value.getUser(), value);
+        }
+      })
+      .groupByKey()
+      .count("Counts");
 
     // write to the result topic, need to override serdes
     aggregated.to(stringSerde, longSerde, "WikipediaStats");

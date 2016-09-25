@@ -122,14 +122,14 @@ public class AnomalyDetectionLambdaExample {
     // click by the corresponding user).
     final KStream<String, String> views = builder.stream("UserClicks");
 
-        final KTable<Windowed<String>, Long> anomalousUsers = views
-            // map the user name as key, because the subsequent counting is performed based on the key
-            .map((ignoredKey, username) -> new KeyValue<>(username, username))
-            // count users, using one-minute tumbling windows
-            .groupByKey()
-           .count(TimeWindows.of(60 * 1000L), "UserCountStore")
-           // get users whose one-minute count is >= 3
-           .filter((windowedUserId, count) -> count >= 3);
+    final KTable<Windowed<String>, Long> anomalousUsers = views
+      // map the user name as key, because the subsequent counting is performed based on the key
+      .map((ignoredKey, username) -> new KeyValue<>(username, username))
+      // count users, using one-minute tumbling windows
+      .groupByKey()
+      .count(TimeWindows.of(60 * 1000L), "UserCountStore")
+      // get users whose one-minute count is >= 3
+      .filter((windowedUserId, count) -> count >= 3);
 
     // Note: The following operations would NOT be needed for the actual anomaly detection,
     // which would normally stop at the filter() above.  We use the operations below only to

@@ -63,14 +63,14 @@ public class WikipediaFeedAvroLambdaExample {
     // read the source stream
     final KStream<String, WikiFeed> feeds = builder.stream("WikipediaFeed");
 
-        // aggregate the new feed counts of by user
-        KTable<String, Long> aggregated = feeds
-                // filter out old feeds
-                .filter((dummy, value) -> value.getIsNew())
-                // map the user id as key
-                .map((key, value) -> new KeyValue<>(value.getUser(), value))
-                .groupByKey()
-                .count("Counts");
+    // aggregate the new feed counts of by user
+    final KTable<String, Long> aggregated = feeds
+      // filter out old feeds
+      .filter((dummy, value) -> value.getIsNew())
+      // map the user id as key
+      .map((key, value) -> new KeyValue<>(value.getUser(), value))
+      .groupByKey()
+      .count("Counts");
 
     // write to the result topic, need to override serdes
     aggregated.to(stringSerde, longSerde, "WikipediaStats");
