@@ -74,6 +74,7 @@ public class ApplicationResetIntegrationTest {
     streamsConfiguration.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
     streamsConfiguration.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     streamsConfiguration.put(StreamsConfig.STATE_DIR_CONFIG, "/tmp/kafka-streams");
+    streamsConfiguration.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0);
     IntegrationTestUtils.purgeLocalStreamsState(streamsConfiguration);
 
     KafkaStreams streams = ApplicationResetExample.run(new String[0], streamsConfiguration);
@@ -139,7 +140,7 @@ public class ApplicationResetIntegrationTest {
     // Step 6: Verify the application's output data.
     //
     final List<KeyValue<String, Long>> resultRerun = IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(consumerConfig, outputTopic, inputValues.size());
-    assertThat(result).isEqualTo(expectedResult);
+    assertThat(resultRerun).isEqualTo(expectedResult);
 
     streams.close();
   }
